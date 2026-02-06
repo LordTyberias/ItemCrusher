@@ -1,0 +1,48 @@
+## Interface: 120000
+## Title: ItemCrusher
+## IconTexture: Interface\Icons\Ships_ability_depthcharges
+
+## Notes: Select items from your bags and delete them with fewer prompts.
+## Notes-deDE: Wähle Items aus deinen Taschen und lösche sie mit weniger Bestätigungen.
+## Notes-frFR: Sélectionnez des objets dans vos sacs et supprimez-les avec moins de confirmations.
+## Notes-esES: Selecciona objetos de tus bolsas y elimínalos con menos confirmaciones.
+## Notes-esMX: Selecciona objetos de tus bolsas y elimínalos con menos confirmaciones.
+## Notes-itIT: Seleziona oggetti dalle borse ed eliminali con meno conferme.
+## Notes-ptBR: Selecione itens das suas bolsas e exclua com menos confirmações.
+## Notes-ruRU: Выбирайте предметы в сумках и удаляйте их с меньшим числом подтверждений.
+## Notes-koKR: 가방에서 아이템을 선택하고 더 적은 확인으로 삭제합니다.
+## Notes-zhCN: 从背包中选择物品，并用更少的确认步骤删除它们。
+## Author: LordTyberias @GitHub/Tyberîas @Die Aldor-EU
+
+## Version: 1.0
+## SavedVariables: ItemCrusherDB
+
+## Category: Inventory
+## Category-deDE: Inventar
+## Category-esES: Inventario
+## Category-esMX: Inventario
+## Category-frFR: Inventaire
+## Category-itIT: Inventario
+## Category-koKR: 소지품
+## Category-ptBR: Inventário
+## Category-ruRU: Инвентарь
+## Category-zhCN: 物品栏
+## Category-zhTW: 物品欄
+
+ItemCrusher.lua
+
+Lib/Util.lua
+Lib/DB.lua
+
+Modules/Locale.lua
+Modules/Popups.lua
+Modules/Filters.lua
+Modules/TooltipScan.lua
+Modules/Model.lua
+Modules/UI.lua
+Modules/Delete.lua
+Modules/Settings.lua
+Modules/Minimap.lua
+Modules/Debug.lua
+
+Core/Core.lua
