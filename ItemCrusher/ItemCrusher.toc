@@ -14,7 +14,7 @@
 ## Notes-zhCN: 从背包中选择物品，并用更少的确认步骤删除它们。
 ## Author: LordTyberias @GitHub/Tyberîas @Die Aldor-EU
 
-## Version: 1.0
+## Version: 1.1
 ## SavedVariables: ItemCrusherDB
 
 ## Category: Inventory

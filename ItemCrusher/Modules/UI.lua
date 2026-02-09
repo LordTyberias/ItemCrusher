@@ -33,21 +33,17 @@ local function SetButtonEnabled(btn, enabled)
   if not btn then return end
 
   btn:SetEnabled(enabled and true or false)
-
-  -- Alpha like Blizzard (subtle dim)
   btn:SetAlpha(enabled and 1 or 0.45)
 
-  -- Text coloring (UIPanelButtonTemplate usually has btn:GetFontString())
   local fs = btn.GetFontString and btn:GetFontString()
   if fs then
     if enabled then
-      fs:SetTextColor(1, 0.82, 0) -- warm yellow-ish (similar to default)
+      fs:SetTextColor(1, 0.82, 0)
     else
-      fs:SetTextColor(0.5, 0.5, 0.5) -- gray
+      fs:SetTextColor(0.5, 0.5, 0.5)
     end
   end
 
-  -- Disable the "pushed" look lingering if we disable while hovered/pressed
   if not enabled then
     if btn.SetButtonState then btn:SetButtonState("NORMAL") end
     if btn.UnlockHighlight then btn:UnlockHighlight() end
@@ -57,7 +53,6 @@ end
 -- Enable/disable bottom action buttons based on selection count
 function IC.UI:UpdateActionButtons()
   local hasSelection = (self:CountSelected() > 0)
-
   SetButtonEnabled(self.clearBtn, hasSelection)
   SetButtonEnabled(self.deleteBtn, hasSelection)
 end
@@ -90,7 +85,7 @@ function IC.UI:Init()
   -- Use template title text if present
   self.title = f.TitleText
   if self.title then
-    self.title:SetText("ItemCrusher") -- will be overwritten by ApplyLocale()
+    self.title:SetText("ItemCrusher") -- overwritten by ApplyLocale()
   end
 
   if f.CloseButton then
@@ -155,7 +150,6 @@ function IC.UI:Init()
     end
   end)
 
-  -- Optional: prevent "hover highlight feel" when disabled
   local function GuardHover(btn)
     btn:SetScript("OnEnter", function(selfBtn)
       if not selfBtn:IsEnabled() then
@@ -199,7 +193,6 @@ function IC.UI:ApplyLocale()
   self.clearBtn:SetText(L.CLEAR or "Clear")
   self.deleteBtn:SetText(L.DELETE or "Delete")
 
-  -- re-apply styling after text set (so fontstring exists / updates)
   self:UpdateActionButtons()
 end
 
@@ -231,7 +224,6 @@ function IC.UI:UpdateStatusReady()
     self.status:SetText(string.format(L.STATUS_READY or "%d", n))
   end
 
-  -- keep buttons in sync with selection count
   self:UpdateActionButtons()
 end
 
@@ -259,7 +251,7 @@ function IC.UI:EnsureButton(i)
   b:SetBackdropColor(0, 0, 0, 0.35)
   b:SetBackdropBorderColor(0, 0, 0, 0.85)
 
-  -- IMPORTANT: inset icon so the border is visible
+  -- inset icon so border is visible
   b.icon = b:CreateTexture(nil, "ARTWORK")
   b.icon:SetPoint("TOPLEFT", 3, -3)
   b.icon:SetPoint("BOTTOMRIGHT", -3, 3)
@@ -333,10 +325,7 @@ function IC.UI:RenderCategory(titleText, list, headerIndex, buttonIndex, y, onTo
       local newVal = not self.selected[k]
       self.selected[k] = newVal and true or nil
       self:StyleButtonSelected(b, newVal, it.quality)
-
-      -- toggle changed -> update status + buttons immediately
       self:UpdateStatusReady()
-
       if onToggle then onToggle() end
     end)
 
@@ -357,6 +346,19 @@ function IC.UI:RenderCategory(titleText, list, headerIndex, buttonIndex, y, onTo
   return headerIndex, buttonIndex, y
 end
 
+-- Helper: detect + cache "known/learned/collected" state per item
+local function IsKnownItem(it)
+  if not it or it.bag == nil or it.slot == nil then return false end
+  if it.isKnown ~= nil then return it.isKnown and true or false end
+
+  local known = false
+  if IC.TooltipScan and IC.TooltipScan.IsKnown then
+    known = IC.TooltipScan:IsKnown(it.bag, it.slot) and true or false
+  end
+  it.isKnown = known and true or false
+  return known
+end
+
 function IC.UI:Refresh(model, onToggle)
   if not self.content then return end
   IC.Util.Wipe(self.flatIndexToItem)
@@ -366,16 +368,60 @@ function IC.UI:Refresh(model, onToggle)
   local y = 0
   local maxWidth = self.COLS * (self.ICON_SIZE + self.PAD)
 
+  -- ================================
+  -- Build "known" list on-the-fly,
+  -- and filter them out of rarities.
+  -- ================================
+  local knownList = {}
+  local knownSet = {}
+
+  local function AddKnown(it)
+    if not it then return end
+    local k = IC.Util.Key(it.bag, it.slot)
+    if not knownSet[k] then
+      knownSet[k] = true
+      knownList[#knownList + 1] = it
+    end
+  end
+
+  -- Prefer model.knownItems if provided, but also dedupe against filtered scan.
+  if model and model.knownItems then
+    for i = 1, #model.knownItems do
+      AddKnown(model.knownItems[i])
+      model.knownItems[i].isKnown = true
+    end
+  end
+
+  -- Filter rarity lists: anything "known" goes to knownList
+  local filteredByRarity = {}
+  if model and model.rarityOrder and model.itemsByRarity then
+    for _, q in ipairs(model.rarityOrder) do
+      local src = model.itemsByRarity[q] or {}
+      local dst = {}
+      for i = 1, #src do
+        local it = src[i]
+        if IsKnownItem(it) then
+          AddKnown(it)
+        else
+          dst[#dst + 1] = it
+        end
+      end
+      filteredByRarity[q] = dst
+    end
+  end
+
+  -- Render known section (always independent from rarity)
   headerIndex, buttonIndex, y = self:RenderCategory(
     (IC.L and IC.L.KNOWN_HEADER) or "Already known",
-    model and model.knownItems,
+    knownList,
     headerIndex, buttonIndex, y,
     onToggle
   )
 
+  -- Render rarities without known items
   if model and model.rarityOrder then
     for _, q in ipairs(model.rarityOrder) do
-      local list = model.itemsByRarity and model.itemsByRarity[q]
+      local list = filteredByRarity[q] or {}
       local titleText =
         (IC.L and IC.L.RARITY and IC.L.RARITY[q]) or
         ((IC.L and IC.L.RARITY and IC.L.RARITY[-1]) or "Unknown")
@@ -392,7 +438,6 @@ function IC.UI:Refresh(model, onToggle)
   local totalHeight = math.max(-y + 10, 1)
   self.content:SetSize(maxWidth, totalHeight)
 
-  -- refresh status + button enabled/disabled state
   self:UpdateStatusReady()
 end
 
@@ -400,7 +445,6 @@ function IC.UI:ClearSelection()
   IC.Util.Wipe(self.selected)
   self:UpdateStatusReady()
 
-  -- ensure UI visuals reset immediately
   if IC.Core and IC.Core.Refresh and self:IsShown() then
     IC.Core:Refresh()
   end
