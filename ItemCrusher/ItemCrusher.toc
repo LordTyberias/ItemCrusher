@@ -1,4 +1,4 @@
-## Interface: 120000
+## Interface: 120001, 120000
 ## Title: ItemCrusher
 ## IconTexture: Interface\Icons\Ships_ability_depthcharges
 
@@ -14,7 +14,7 @@
 ## Notes-zhCN: 从背包中选择物品，并用更少的确认步骤删除它们。
 ## Author: LordTyberias @GitHub/Tyberîas @Die Aldor-EU
 
-## Version: 1.1
+## Version: 1.11
 ## SavedVariables: ItemCrusherDB
 
 ## Category: Inventory
