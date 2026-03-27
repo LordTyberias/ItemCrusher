@@ -1,4 +1,4 @@
-## Interface: 120001, 120000
+## Interface: 120001, 120005 
 ## Title: ItemCrusher
 ## IconTexture: Interface\Icons\Ships_ability_depthcharges
 
